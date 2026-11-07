@@ -3,41 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Golgappy Club Knock Out Tournament</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
   <header class="hero">
     <div class="club-tag">GOLGAPPY CLUB PRESENTS</div>
+
     <h1>Knock Out Tournament</h1>
-    <p>One Champion. One Ultimate Victory.</p>
+
+    <p>Every Match Counts. One Ultimate Champion.</p>
   </header>
 
   <main class="container">
 
+    <!-- Tournament status -->
     <section class="status-panel">
-      <div>
-        <span class="small-label">TOURNAMENT STATUS</span>
+
+      <div class="status-card">
+        <span class="small-label">STATUS</span>
         <h2 id="status">Waiting</h2>
       </div>
-      <div>
+
+      <div class="status-card">
         <span class="small-label">ROUND</span>
         <h2 id="round">1</h2>
       </div>
-      <div>
+
+      <div class="status-card">
         <span class="small-label">PLAYERS LEFT</span>
         <h2 id="remaining">0</h2>
       </div>
+
+      <div class="status-card">
+        <span class="small-label">QUALIFIED</span>
+        <h2 id="qualified">0</h2>
+      </div>
+
     </section>
 
+    <!-- Live match -->
     <section class="match-section">
+
       <div class="section-heading">
         <span class="small-label">LIVE MATCH</span>
         <h2>THE BATTLE ARENA</h2>
       </div>
 
       <div class="match-card">
+
         <div class="player-box" id="p1">
           <span class="player-label">PLAYER 1</span>
           <strong id="name1">Waiting...</strong>
@@ -49,86 +67,155 @@
           <span class="player-label">PLAYER 2</span>
           <strong id="name2">Waiting...</strong>
         </div>
+
       </div>
 
       <div id="match-message" class="match-message">
-        Waiting for the first spin.
+        Waiting for tournament to start.
       </div>
 
+      <!-- Admin winner selection -->
       <div id="winner-controls" class="winner-controls hidden">
-        <p>Admin: Select the actual match winner</p>
+
+        <p>Select the actual match winner:</p>
+
         <button id="win1" class="winner-button"></button>
+
         <button id="win2" class="winner-button"></button>
+
       </div>
+
     </section>
 
-    <section class="champion-section hidden" id="champion-section">
+    <!-- Champion -->
+    <section id="champion-section" class="champion-section hidden">
+
       <div class="trophy">🏆</div>
+
       <span class="small-label">TOURNAMENT CHAMPION</span>
+
       <h2 id="champion-name">Champion</h2>
-      <p>Undefeated. Unstoppable. The ultimate winner!</p>
+
+      <p>Undefeated. Unstoppable. The Ultimate Winner!</p>
+
     </section>
 
+    <!-- Admin panel -->
     <section class="admin-section">
+
       <div class="section-heading">
         <span class="small-label">CONTROL ROOM</span>
         <h2>ADMIN PANEL</h2>
       </div>
 
       <div id="admin-login">
+
         <input
           type="password"
           id="admin-pin"
           placeholder="Enter Admin PIN"
           autocomplete="current-password"
         >
-        <button id="login-button">Unlock Admin</button>
+
+        <button id="login-button">
+          Unlock Admin
+        </button>
+
       </div>
 
       <div id="admin-controls" class="hidden">
-        <label for="player-input">Player names (one name per line)</label>
+
+        <label for="player-input">
+          Player names — one name per line
+        </label>
+
         <textarea
           id="player-input"
-          rows="7"
-          placeholder="Player 1&#10;Player 2&#10;Player 3"
+          rows="8"
+          placeholder="Ali&#10;Ahmed&#10;Bilal&#10;Usman"
         ></textarea>
 
         <div class="admin-buttons">
-          <button id="save-players">Save Players</button>
-          <button id="spin-button" class="spin-button">SPIN</button>
-          <button id="reset-button" class="reset-button">Reset Tournament</button>
-          <button id="logout-button" class="logout-button">Lock Admin</button>
+
+          <button id="save-players">
+            Save Players
+          </button>
+
+          <button id="spin-button" class="spin-button">
+            SPIN
+          </button>
+
+          <button id="reset-button" class="reset-button">
+            Reset Tournament
+          </button>
+
+          <button id="logout-button" class="logout-button">
+            Lock Admin
+          </button>
+
         </div>
 
         <p id="admin-message" class="admin-message"></p>
+
       </div>
+
     </section>
 
+    <!-- Tournament lists -->
     <section class="lists-section">
+
       <div class="list-card">
+
         <h3>🏅 Latest Winner</h3>
+
         <p id="last-winner">Not decided yet</p>
+
       </div>
 
       <div class="list-card">
+
         <h3>Players Remaining</h3>
+
         <ul id="remaining-list"></ul>
+
       </div>
 
       <div class="list-card">
+
         <h3>Eliminated Players</h3>
+
         <ul id="eliminated-list"></ul>
+
       </div>
+
     </section>
 
+    <!-- Current round -->
+    <section class="round-section">
+
+      <div class="section-heading">
+        <span class="small-label">ROUND PROGRESS</span>
+        <h2>QUALIFICATION</h2>
+      </div>
+
+      <div id="round-progress" class="round-progress">
+        No tournament started yet.
+      </div>
+
+    </section>
+
+    <!-- History -->
     <section class="history-section">
+
       <div class="section-heading">
         <span class="small-label">TOURNAMENT RECORD</span>
         <h2>MATCH HISTORY</h2>
       </div>
+
       <div id="history-list" class="history-list">
         No matches played yet.
       </div>
+
     </section>
 
   </main>
@@ -141,5 +228,6 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="app.js"></script>
+
 </body>
 </html>
