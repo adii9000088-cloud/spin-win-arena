@@ -1,6 +1,6 @@
 {
   "name": "golgappy-club-knockout-tournament",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "description": "Golgappy Club Knock Out Tournament",
   "scripts": {
@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "express": "^4.21.2",
-    "socket.io": "^4.8.1",
-    "pg": "^8.13.1"
+    "socket.io": "^4.8.1"
   }
 }
