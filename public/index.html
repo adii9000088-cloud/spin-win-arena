@@ -6,6 +6,7 @@
 <title>Spin & Win Arena</title>
 <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
 
 <header>
@@ -14,34 +15,44 @@
 </header>
 
 <main>
+
 <section class="hero">
   <p class="eyebrow">PUBLIC TOURNAMENT ROOM</p>
   <h1>One spin.<br><em>One winner.</em></h1>
-  <p class="sub">Watch the draw, follow every match, and see who becomes champion.</p>
-  <div class="roomline">Share this page with everyone · No viewer login required</div>
+  <p class="sub">
+    The champion stays. Each spin brings one new challenger.
+    The loser is eliminated.
+  </p>
+  <div class="roomline">
+    Share this page with everyone · No viewer login required
+  </div>
 </section>
 
 <section class="arena">
+
   <div class="topline">
     <span id="round">ROUND —</span>
     <span id="status">WAITING FOR PLAYERS</span>
   </div>
 
   <div class="duel">
+
     <div class="player" id="p1">
       <small>PLAYER 1</small>
       <strong>—</strong>
     </div>
+
     <div class="vs">VS</div>
+
     <div class="player" id="p2">
       <small>PLAYER 2</small>
       <strong>—</strong>
     </div>
+
   </div>
 
   <div id="champion" class="champion hidden">
-    👑 CHAMPION
-    <strong></strong>
+    👑 CHAMPION <strong></strong>
   </div>
 
   <div class="history">
@@ -50,15 +61,25 @@
       Matches will appear here as they happen.
     </div>
   </div>
+
 </section>
 
 <section class="side">
+
   <div class="card">
-    <h2>Players remaining <b id="count">0</b></h2>
+    <h2>Challengers waiting <b id="count">0</b></h2>
     <div id="players" class="chips">Waiting for players…</div>
   </div>
 
+  <div class="card">
+    <h2>Eliminated players</h2>
+    <div id="eliminated" class="chips">
+      No eliminations yet
+    </div>
+  </div>
+
   <div class="card admin">
+
     <h2>Admin controls <span class="lock">🔒</span></h2>
 
     <label>
@@ -72,22 +93,32 @@
     </label>
 
     <button id="add">SET PLAYERS</button>
-    <button id="spin" class="primary">🎡 SPIN FOR MATCH</button>
+
+    <button id="spin" class="primary">
+      🎡 SPIN FOR MATCH
+    </button>
 
     <div class="winnerbox">
-      <p>Who won this match?</p>
+      <p>Who won this match? Winner keeps the champion position.</p>
+
       <div class="winnerbuttons">
         <button id="win1" disabled>PLAYER 1 WON</button>
         <button id="win2" disabled>PLAYER 2 WON</button>
       </div>
     </div>
 
-    <button id="reset" class="danger">RESET TOURNAMENT</button>
+    <button id="reset" class="danger">
+      RESET TOURNAMENT
+    </button>
+
     <p id="notice" class="notice">
       Only the admin PIN holder can control the tournament.
     </p>
+
   </div>
+
 </section>
+
 </main>
 
 <footer>
