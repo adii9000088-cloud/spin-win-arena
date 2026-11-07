@@ -1,7 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap');
-:root{--bg:#0b1020;--panel:#131c32;--line:#283653;--muted:#9aabc6;--gold:#f4c45e;--white:#f5f7fb;--cyan:#6ee7e1}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0,#1b2c4d 0,transparent 48%),var(--bg);color:var(--white);font-family:Manrope,Arial,sans-serif;min-height:100vh}
-header{height:68px;border-bottom:1px solid #ffffff18;display:flex;align-items:center;justify-content:space-between;padding:0 max(5vw,20px)}.brand{font-weight:800;letter-spacing:1.5px}.brand span{color:var(--gold)}.live,.eyebrow,.topline,.player small,.roomline{font:500 11px 'DM Mono',monospace;letter-spacing:1.4px}.live{color:var(--cyan)}.live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);margin-right:8px;box-shadow:0 0 12px var(--cyan)}
-main{max-width:1180px;margin:auto;padding:52px 22px 40px;display:grid;grid-template-columns:1.45fr .8fr;gap:24px}.hero{grid-column:1/-1;text-align:center;margin-bottom:8px}.eyebrow{color:var(--gold)}h1{font-size:clamp(42px,7vw,76px);line-height:.98;letter-spacing:-4px;margin:12px 0}h1 em{font-style:normal;color:var(--gold)}.sub{color:var(--muted)}.roomline{color:#8394b1;margin-top:22px}
-.arena,.card{background:linear-gradient(145deg,#17233d,#10192c);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 20px 50px #0003}.topline{display:flex;justify-content:space-between;color:var(--gold)}#status{color:var(--cyan)}.duel{display:grid;grid-template-columns:1fr 52px 1fr;align-items:center;gap:12px;margin:32px 0}.player{min-height:150px;border:1px solid #354666;border-radius:18px;background:#0c1528;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:15px;transition:.3s}.player strong{font-size:clamp(19px,3vw,28px);margin-top:12px;overflow-wrap:anywhere}.player small{color:var(--muted)}.vs{text-align:center;color:var(--gold);font-weight:800}.champion{padding:18px;text-align:center;border:1px solid #8a6b2d;background:#352b18;border-radius:14px;color:var(--gold);margin-bottom:24px}.champion strong{display:block;font-size:28px;margin-top:7px}.hidden{display:none}.history h2,.card h2{font-size:16px;margin:0 0 16px}.empty{color:var(--muted);font-size:13px}.matchrow{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;padding:12px 0;border-top:1px solid #ffffff12;font-size:12px}.matchrow .winner{color:var(--cyan);font-weight:800}.matchrow .loser{color:#8995aa;text-decoration:line-through}.side{display:flex;flex-direction:column;gap:18px}.card h2{display:flex;justify-content:space-between}.card h2 b{color:var(--gold)}.chips{display:flex;flex-wrap:wrap;gap:7px;color:var(--muted);font-size:12px}.chip{background:#263653;border:1px solid #3b4d6c;padding:7px 10px;border-radius:30px}.admin label{display:block;font-size:12px;color:var(--muted);margin:12px 0}.admin input,.admin textarea{width:100%;margin-top:7px;padding:12px;background:#0b1426;border:1px solid #354666;border-radius:9px;color:white;font:inherit;resize:vertical}.admin button{width:100%;border:1px solid #405273;background:#253653;color:white;padding:12px;border-radius:10px;font-weight:800;cursor:pointer;margin-top:8px}.admin button:hover{filter:brightness(1.2)}.admin .primary{background:var(--gold);color:#1a1a1a;border-color:var(--gold);padding:15px}.admin .danger{background:transparent;color:#ff9c9c;border-color:#70444b}.winnerbox{margin-top:15px;padding-top:14px;border-top:1px solid #ffffff18}.winnerbox p{font-size:12px;color:var(--muted)}.winnerbuttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.winnerbuttons button{font-size:10px}.admin button:disabled{opacity:.35;cursor:not-allowed}.lock{font-size:13px}.notice{font-size:11px;color:var(--muted);line-height:1.5}footer{text-align:center;padding:24px;color:#71819d;font-size:11px}
-@media(max-width:800px){main{grid-template-columns:1fr;padding-top:30px}.hero{grid-column:auto}.duel{grid-template-columns:1fr 34px 1fr}.arena,.card{padding:18px}header{padding:0 18px}}
+/* Vertical 3D Card Flip Animation */
+
+.player {
+    perspective: 900px;
+    overflow: hidden;
+}
+
+.player strong {
+    display: block;
+    transform-style: preserve-3d;
+}
+
+.player.rolling {
+    border-color: var(--gold);
+    box-shadow: 0 0 25px #f4c45e55;
+}
+
+.player.rolling strong {
+    animation: verticalCardRoll 0.22s ease-in-out infinite;
+    color: var(--gold);
+}
+
+@keyframes verticalCardRoll {
+    0% {
+        transform: rotateX(75deg) translateY(-35px);
+        opacity: 0;
+    }
+
+    50% {
+        transform: rotateX(0deg) translateY(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: rotateX(-75deg) translateY(35px);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .player.rolling strong {
+        animation: none;
+    }
+}
