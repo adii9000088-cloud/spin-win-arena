@@ -28,7 +28,9 @@ function fresh() {
     remaining: [],
     eliminated: [],
     current: [],
-    defender: null,
+    roundPlayers: [],
+    roundPending: [],
+    roundWinners: [],
     lastWinner: null,
     champion: null,
     history: [],
@@ -41,11 +43,22 @@ function fresh() {
 
 let state = fresh();
 
-// Load saved tournament
+// Save tournament data
+function save() {
+  state.updatedAt = Date.now();
+
+  fs.writeFileSync(
+    DATA_FILE,
+    JSON.stringify(state, null, 2)
+  );
+}
+
+// Load tournament data
 function loadState() {
   try {
     if (!fs.existsSync(DATA_FILE)) {
       state = fresh();
+      save();
       return;
     }
 
@@ -53,12 +66,9 @@ function loadState() {
       fs.readFileSync(DATA_FILE, "utf8")
     );
 
-    const lastUpdate = Number(saved.updatedAt || 0);
+    const age = Date.now() - Number(saved.updatedAt || 0);
 
-    if (
-      !lastUpdate ||
-      Date.now() - lastUpdate >= RETENTION_MS
-    ) {
+    if (!saved.updatedAt || age >= RETENTION_MS) {
       state = fresh();
       save();
       return;
@@ -69,23 +79,18 @@ function loadState() {
       ...saved
     };
 
+    state.roundPlayers ||= [...state.remaining];
+    state.roundPending ||= [...state.remaining];
+    state.roundWinners ||= [];
+
   } catch (error) {
-    console.error("Unable to load tournament:", error);
+    console.error("Tournament loading error:", error);
     state = fresh();
+    save();
   }
 }
 
-// Save tournament
-function save() {
-  state.updatedAt = Date.now();
-
-  fs.writeFileSync(
-    DATA_FILE,
-    JSON.stringify(state, null, 2)
-  );
-}
-
-// Check 7-day expiry
+// Seven-day inactivity expiry
 function expireIfNeeded() {
   const age = Date.now() - Number(state.updatedAt || 0);
 
@@ -96,17 +101,17 @@ function expireIfNeeded() {
   }
 }
 
-// Publish live state
+// Send updates to all visitors
 function publish() {
   save();
   io.emit("state", state);
 }
 
-// Admin authentication
+// Admin PIN protection
 function admin(req, res, next) {
   const pin = req.get("x-admin-pin") || req.body.pin;
 
-  if (pin !== ADMIN_PIN) {
+  if (!pin || pin !== ADMIN_PIN) {
     return res.status(401).json({
       error: "Admin PIN incorrect."
     });
@@ -115,24 +120,90 @@ function admin(req, res, next) {
   next();
 }
 
-function asyncRoute(fn) {
-  return (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
+// Shuffle player names
+function shuffle(array) {
+  const result = [...array];
+
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [result[i], result[j]] = [
+      result[j],
+      result[i]
+    ];
+  }
+
+  return result;
 }
 
-// Check expiry before API requests
+// Update players remaining
+function updateRemaining() {
+  state.remaining = state.players.filter(
+    name => !state.eliminated.includes(name)
+  );
+}
+
+// Finish round and prepare next round
+function completeRound() {
+  if (state.roundPending.length !== 0) {
+    return;
+  }
+
+  const winners = [...state.roundWinners];
+
+  if (winners.length === 1) {
+    state.champion = winners[0];
+    state.status = "finished";
+    state.current = [];
+    return;
+  }
+
+  if (winners.length < 1) {
+    state.status = "waiting";
+    return;
+  }
+
+  state.round += 1;
+  state.roundPlayers = [...winners];
+  state.roundPending = shuffle(winners);
+  state.roundWinners = [];
+  state.current = [];
+  state.status = "ready";
+}
+
+// Give automatic BYE to one unpaired player
+function resolveBye() {
+  if (state.roundPending.length === 1) {
+    const player = state.roundPending.shift();
+
+    state.roundWinners.push(player);
+
+    state.history.push({
+      round: state.round,
+      type: "bye",
+      player1: player,
+      player2: null,
+      winner: player,
+      loser: null,
+      at: new Date().toISOString()
+    });
+  }
+
+  completeRound();
+}
+
+// Expiry check before API requests
 app.use("/api", (req, res, next) => {
   expireIfNeeded();
   next();
 });
 
-// Public state
+// Public tournament state
 app.get("/api/state", (req, res) => {
   res.json(state);
 });
 
-// Verify Admin PIN
+// Admin login verification
 app.post("/api/admin-check", admin, (req, res) => {
   res.json({ ok: true });
 });
@@ -148,10 +219,12 @@ app.post("/api/reset", admin, (req, res) => {
   });
 });
 
-// Add players
+// Add tournament players
 app.post("/api/players", admin, (req, res) => {
   const names = Array.isArray(req.body.names)
-    ? req.body.names.map(x => String(x).trim()).filter(Boolean)
+    ? req.body.names
+        .map(name => String(name).trim())
+        .filter(Boolean)
     : [];
 
   if (names.length < 2) {
@@ -167,17 +240,23 @@ app.post("/api/players", admin, (req, res) => {
   }
 
   if (
-    new Set(names.map(x => x.toLowerCase())).size !== names.length
+    new Set(names.map(name => name.toLowerCase())).size
+    !== names.length
   ) {
     return res.status(400).json({
       error: "Player names must be unique."
     });
   }
 
+  const shuffled = shuffle(names);
+
   state = {
     ...fresh(),
     players: names,
     remaining: [...names],
+    roundPlayers: [...shuffled],
+    roundPending: [...shuffled],
+    roundWinners: [],
     status: "ready"
   };
 
@@ -189,7 +268,7 @@ app.post("/api/players", admin, (req, res) => {
   });
 });
 
-// Spin tournament
+// Spin: select two players from current round
 app.post("/api/spin", admin, (req, res) => {
   if (state.status === "finished") {
     return res.status(400).json({
@@ -199,54 +278,38 @@ app.post("/api/spin", admin, (req, res) => {
 
   if (state.current.length) {
     return res.status(400).json({
-      error: "Finish the current match first."
+      error: "Record current match winner first."
     });
   }
 
-  // Next match: previous winner vs new challenger
-  if (state.defender) {
-    const challengers = state.remaining.filter(
-      name => name !== state.defender
-    );
-
-    if (!challengers.length) {
-      return res.status(400).json({
-        error: "No challengers remain."
-      });
-    }
-
-    const challenger = challengers[
-      Math.floor(Math.random() * challengers.length)
-    ];
-
-    state.current = [
-      state.defender,
-      challenger
-    ];
-
-  } else {
-    // First match: two random players
-    if (state.remaining.length < 2) {
-      return res.status(400).json({
-        error: "Not enough players."
-      });
-    }
-
-    const pool = [...state.remaining];
-
-    const first = pool.splice(
-      Math.floor(Math.random() * pool.length),
-      1
-    )[0];
-
-    const second = pool.splice(
-      Math.floor(Math.random() * pool.length),
-      1
-    )[0];
-
-    state.current = [first, second];
+  if (state.players.length < 2) {
+    return res.status(400).json({
+      error: "Add players first."
+    });
   }
 
+  resolveBye();
+
+  if (state.status === "finished") {
+    publish();
+
+    return res.json({
+      ok: true,
+      champion: state.champion,
+      state
+    });
+  }
+
+  if (state.roundPending.length < 2) {
+    return res.status(400).json({
+      error: "No players available for another match."
+    });
+  }
+
+  const player1 = state.roundPending.shift();
+  const player2 = state.roundPending.shift();
+
+  state.current = [player1, player2];
   state.status = "match";
 
   publish();
@@ -258,7 +321,7 @@ app.post("/api/spin", admin, (req, res) => {
   });
 });
 
-// Record match winner
+// Record actual match winner
 app.post("/api/winner", admin, (req, res) => {
   const winner = String(req.body.winner || "");
 
@@ -267,32 +330,29 @@ app.post("/api/winner", admin, (req, res) => {
     !state.current.includes(winner)
   ) {
     return res.status(400).json({
-      error: "Choose a player from the current match."
+      error: "Select a player from the current match."
     });
   }
 
-  const loser = state.current.find(
-    name => name !== winner
-  );
+  const player1 = state.current[0];
+  const player2 = state.current[1];
 
-  const previousWinner = state.lastWinner;
+  const loser = player1 === winner
+    ? player2
+    : player1;
 
-  state.remaining = state.remaining.filter(
-    name => name !== loser
-  );
+  state.roundWinners.push(winner);
+  state.lastWinner = winner;
 
   if (!state.eliminated.includes(loser)) {
     state.eliminated.push(loser);
   }
 
-  state.lastWinner = winner;
-  state.defender = winner;
-
   state.history.push({
     round: state.round,
-    player1: state.current[0],
-    player2: state.current[1],
-    previousWinner,
+    type: "match",
+    player1,
+    player2,
     winner,
     loser,
     at: new Date().toISOString()
@@ -300,15 +360,13 @@ app.post("/api/winner", admin, (req, res) => {
 
   state.current = [];
 
-  // Only the final undefeated player becomes Champion
-  if (state.remaining.length === 1) {
-    state.champion = winner;
-    state.defender = null;
-    state.status = "finished";
-  } else {
-    state.champion = null;
+  updateRemaining();
+
+  // Resolve BYE and advance round if all matches are complete
+  resolveBye();
+
+  if (state.status !== "finished") {
     state.status = "ready";
-    state.round += 1;
   }
 
   publish();
@@ -323,17 +381,18 @@ app.post("/api/winner", admin, (req, res) => {
   });
 });
 
-// Live visitors
+// Live visitor connection
 io.on("connection", socket => {
   expireIfNeeded();
   socket.emit("state", state);
 });
 
-// Automatic expiry check every hour
+// Check expiry every hour
 setInterval(() => {
   expireIfNeeded();
 }, 60 * 60 * 1000);
 
+// Error handling
 app.use((err, req, res, next) => {
   console.error(err);
 
@@ -346,7 +405,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
+// Start application
 loadState();
 
 server.listen(PORT, () => {
