@@ -1,7 +1,7 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
-const { Pool } = require("pg");
+const fs = require("fs");
 const path = require("path");
 
 const app = express();
@@ -10,19 +10,14 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_PIN = process.env.ADMIN_PIN;
-const DATABASE_URL = process.env.DATABASE_URL;
 
-const RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+const DATA_FILE = path.join(__dirname, "tournament.json");
+const RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 
-if (!ADMIN_PIN || !DATABASE_URL) {
-  console.error("Missing ADMIN_PIN or DATABASE_URL environment variable.");
+if (!ADMIN_PIN) {
+  console.error("Missing ADMIN_PIN environment variable.");
   process.exit(1);
 }
-
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
 
 app.use(express.json({ limit: "100kb" }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -39,71 +34,75 @@ function fresh() {
     history: [],
     status: "waiting",
     round: 1,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    updatedAt: Date.now()
   };
 }
 
 let state = fresh();
 
-async function saveState() {
-  await pool.query(
-    `INSERT INTO tournament_state (id, data, updated_at)
-     VALUES (1, $1::jsonb, NOW())
-     ON CONFLICT (id)
-     DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()`,
-    [JSON.stringify(state)]
-  );
-}
-
-async function initializeDatabase() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS tournament_state (
-      id INTEGER PRIMARY KEY,
-      data JSONB NOT NULL,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
-
-  const result = await pool.query(
-    "SELECT data, updated_at FROM tournament_state WHERE id = 1"
-  );
-
-  if (result.rows.length) {
-    const age =
-      Date.now() - new Date(result.rows[0].updated_at).getTime();
-
-    if (age >= RETENTION_MS) {
+// Load saved tournament
+function loadState() {
+  try {
+    if (!fs.existsSync(DATA_FILE)) {
       state = fresh();
-    } else {
-      state = { ...fresh(), ...result.rows[0].data };
+      return;
     }
-  }
 
-  await saveState();
+    const saved = JSON.parse(
+      fs.readFileSync(DATA_FILE, "utf8")
+    );
+
+    const lastUpdate = Number(saved.updatedAt || 0);
+
+    if (
+      !lastUpdate ||
+      Date.now() - lastUpdate >= RETENTION_MS
+    ) {
+      state = fresh();
+      save();
+      return;
+    }
+
+    state = {
+      ...fresh(),
+      ...saved
+    };
+
+  } catch (error) {
+    console.error("Unable to load tournament:", error);
+    state = fresh();
+  }
 }
 
-async function expireIfNeeded() {
-  const result = await pool.query(
-    "SELECT updated_at FROM tournament_state WHERE id = 1"
+// Save tournament
+function save() {
+  state.updatedAt = Date.now();
+
+  fs.writeFileSync(
+    DATA_FILE,
+    JSON.stringify(state, null, 2)
   );
+}
 
-  if (!result.rows.length) return;
-
-  const age =
-    Date.now() - new Date(result.rows[0].updated_at).getTime();
+// Check 7-day expiry
+function expireIfNeeded() {
+  const age = Date.now() - Number(state.updatedAt || 0);
 
   if (age >= RETENTION_MS) {
     state = fresh();
-    await saveState();
+    save();
     io.emit("state", state);
   }
 }
 
-async function publish() {
-  await saveState();
+// Publish live state
+function publish() {
+  save();
   io.emit("state", state);
 }
 
+// Admin authentication
 function admin(req, res, next) {
   const pin = req.get("x-admin-pin") || req.body.pin;
 
@@ -122,26 +121,35 @@ function asyncRoute(fn) {
   };
 }
 
-// Check 30-day expiry before API requests.
-app.use("/api", asyncRoute(async (req, res, next) => {
-  await expireIfNeeded();
+// Check expiry before API requests
+app.use("/api", (req, res, next) => {
+  expireIfNeeded();
   next();
-}));
+});
 
+// Public state
 app.get("/api/state", (req, res) => {
   res.json(state);
 });
 
-// Reset tournament
-app.post("/api/reset", admin, asyncRoute(async (req, res) => {
-  state = fresh();
-  await publish();
+// Verify Admin PIN
+app.post("/api/admin-check", admin, (req, res) => {
+  res.json({ ok: true });
+});
 
-  res.json({ ok: true, state });
-}));
+// Reset tournament
+app.post("/api/reset", admin, (req, res) => {
+  state = fresh();
+  publish();
+
+  res.json({
+    ok: true,
+    state
+  });
+});
 
 // Add players
-app.post("/api/players", admin, asyncRoute(async (req, res) => {
+app.post("/api/players", admin, (req, res) => {
   const names = Array.isArray(req.body.names)
     ? req.body.names.map(x => String(x).trim()).filter(Boolean)
     : [];
@@ -158,7 +166,9 @@ app.post("/api/players", admin, asyncRoute(async (req, res) => {
     });
   }
 
-  if (new Set(names.map(x => x.toLowerCase())).size !== names.length) {
+  if (
+    new Set(names.map(x => x.toLowerCase())).size !== names.length
+  ) {
     return res.status(400).json({
       error: "Player names must be unique."
     });
@@ -171,17 +181,19 @@ app.post("/api/players", admin, asyncRoute(async (req, res) => {
     status: "ready"
   };
 
-  await publish();
+  publish();
 
-  res.json({ ok: true, state });
-}));
+  res.json({
+    ok: true,
+    state
+  });
+});
 
-// Spin: first match = two random players.
-// Next matches = previous winner vs one new challenger.
-app.post("/api/spin", admin, asyncRoute(async (req, res) => {
+// Spin tournament
+app.post("/api/spin", admin, (req, res) => {
   if (state.status === "finished") {
     return res.status(400).json({
-      error: "Tournament is already finished."
+      error: "Tournament is finished."
     });
   }
 
@@ -191,6 +203,7 @@ app.post("/api/spin", admin, asyncRoute(async (req, res) => {
     });
   }
 
+  // Next match: previous winner vs new challenger
   if (state.defender) {
     const challengers = state.remaining.filter(
       name => name !== state.defender
@@ -198,30 +211,37 @@ app.post("/api/spin", admin, asyncRoute(async (req, res) => {
 
     if (!challengers.length) {
       return res.status(400).json({
-        error: "No challenger remains."
+        error: "No challengers remain."
       });
     }
 
-    const challenger =
-      challengers[Math.floor(Math.random() * challengers.length)];
+    const challenger = challengers[
+      Math.floor(Math.random() * challengers.length)
+    ];
 
-    state.current = [state.defender, challenger];
+    state.current = [
+      state.defender,
+      challenger
+    ];
 
   } else {
+    // First match: two random players
     if (state.remaining.length < 2) {
       return res.status(400).json({
         error: "Not enough players."
       });
     }
 
-    const poolNames = [...state.remaining];
+    const pool = [...state.remaining];
 
-    const first = poolNames.splice(
-      Math.floor(Math.random() * poolNames.length), 1
+    const first = pool.splice(
+      Math.floor(Math.random() * pool.length),
+      1
     )[0];
 
-    const second = poolNames.splice(
-      Math.floor(Math.random() * poolNames.length), 1
+    const second = pool.splice(
+      Math.floor(Math.random() * pool.length),
+      1
     )[0];
 
     state.current = [first, second];
@@ -229,17 +249,17 @@ app.post("/api/spin", admin, asyncRoute(async (req, res) => {
 
   state.status = "match";
 
-  await publish();
+  publish();
 
   res.json({
     ok: true,
     players: state.current,
     state
   });
-}));
+});
 
-// Record match winner.
-app.post("/api/winner", admin, asyncRoute(async (req, res) => {
+// Record match winner
+app.post("/api/winner", admin, (req, res) => {
   const winner = String(req.body.winner || "");
 
   if (
@@ -247,11 +267,14 @@ app.post("/api/winner", admin, asyncRoute(async (req, res) => {
     !state.current.includes(winner)
   ) {
     return res.status(400).json({
-      error: "Select a player from the current match."
+      error: "Choose a player from the current match."
     });
   }
 
-  const loser = state.current.find(name => name !== winner);
+  const loser = state.current.find(
+    name => name !== winner
+  );
+
   const previousWinner = state.lastWinner;
 
   state.remaining = state.remaining.filter(
@@ -277,17 +300,18 @@ app.post("/api/winner", admin, asyncRoute(async (req, res) => {
 
   state.current = [];
 
+  // Only the final undefeated player becomes Champion
   if (state.remaining.length === 1) {
     state.champion = winner;
-    state.status = "finished";
     state.defender = null;
+    state.status = "finished";
   } else {
     state.champion = null;
     state.status = "ready";
     state.round += 1;
   }
 
-  await publish();
+  publish();
 
   res.json({
     ok: true,
@@ -297,35 +321,36 @@ app.post("/api/winner", admin, asyncRoute(async (req, res) => {
     finished: state.status === "finished",
     state
   });
-}));
-
-io.on("connection", async socket => {
-  try {
-    await expireIfNeeded();
-    socket.emit("state", state);
-  } catch (error) {
-    socket.emit("app-error", {
-      message: "Unable to load tournament state."
-    });
-  }
 });
+
+// Live visitors
+io.on("connection", socket => {
+  expireIfNeeded();
+  socket.emit("state", state);
+});
+
+// Automatic expiry check every hour
+setInterval(() => {
+  expireIfNeeded();
+}, 60 * 60 * 1000);
 
 app.use((err, req, res, next) => {
   console.error(err);
-  if (res.headersSent) return next(err);
+
+  if (res.headersSent) {
+    return next(err);
+  }
 
   res.status(500).json({
     error: "Server error. Please try again."
   });
 });
 
-initializeDatabase()
-  .then(() => {
-    server.listen(PORT, () => {
-      console.log(`Golgappy Club Tournament running on port ${PORT}`);
-    });
-  })
-  .catch(error => {
-    console.error("Database initialization failed:", error);
-    process.exit(1);
-  });
+// Start server
+loadState();
+
+server.listen(PORT, () => {
+  console.log(
+    `Golgappy Club Knock Out Tournament running on port ${PORT}`
+  );
+});
