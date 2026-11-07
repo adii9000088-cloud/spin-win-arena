@@ -1,54 +1,43 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Spin & Win Arena</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Golgappy Club Knock Out Tournament</title>
 <link rel="stylesheet" href="/style.css">
 </head>
-
 <body>
 
 <header>
-  <div class="brand">🏆 SPIN & WIN <span>ARENA</span></div>
+  <div class="brand">🏆 GOLGAPPY CLUB <span>KNOCK OUT TOURNAMENT</span></div>
   <div class="live"><i></i> LIVE TOURNAMENT</div>
 </header>
 
 <main>
-
 <section class="hero">
-  <p class="eyebrow">PUBLIC TOURNAMENT ROOM</p>
-  <h1>One spin.<br><em>One winner.</em></h1>
-  <p class="sub">
-    The champion stays. Each spin brings one new challenger.
-    The loser is eliminated.
-  </p>
-  <div class="roomline">
-    Share this page with everyone · No viewer login required
-  </div>
+  <p class="eyebrow">GOLGAPPY CLUB · OFFICIAL TOURNAMENT</p>
+  <h1>Knock Out<br><em>Tournament</em></h1>
+  <p class="sub">One champion stays. One new challenger enters. The loser is eliminated.</p>
+  <div class="roomline">Share this page with everyone · Viewers can watch live</div>
 </section>
 
 <section class="arena">
-
   <div class="topline">
     <span id="round">ROUND —</span>
     <span id="status">WAITING FOR PLAYERS</span>
   </div>
 
   <div class="duel">
-
     <div class="player" id="p1">
       <small>PLAYER 1</small>
       <strong>—</strong>
     </div>
-
     <div class="vs">VS</div>
-
     <div class="player" id="p2">
       <small>PLAYER 2</small>
       <strong>—</strong>
     </div>
-
   </div>
 
   <div id="champion" class="champion hidden">
@@ -57,15 +46,11 @@
 
   <div class="history">
     <h2>Match results</h2>
-    <div id="history" class="empty">
-      Matches will appear here as they happen.
-    </div>
+    <div id="history" class="empty">Matches will appear here as they happen.</div>
   </div>
-
 </section>
 
 <section class="side">
-
   <div class="card">
     <h2>Challengers waiting <b id="count">0</b></h2>
     <div id="players" class="chips">Waiting for players…</div>
@@ -73,57 +58,38 @@
 
   <div class="card">
     <h2>Eliminated players</h2>
-    <div id="eliminated" class="chips">
-      No eliminations yet
-    </div>
+    <div id="eliminated" class="chips">No eliminations yet</div>
   </div>
 
   <div class="card admin">
-
     <h2>Admin controls <span class="lock">🔒</span></h2>
 
-    <label>
-      Admin PIN
+    <label>Admin PIN
       <input id="pin" type="password" placeholder="Enter admin PIN">
     </label>
 
-    <label>
-      Add player names
+    <label>Add player names
       <textarea id="names" rows="5" placeholder="One name per line"></textarea>
     </label>
 
     <button id="add">SET PLAYERS</button>
-
-    <button id="spin" class="primary">
-      🎡 SPIN FOR MATCH
-    </button>
+    <button id="spin" class="primary">🎡 SPIN FOR MATCH</button>
 
     <div class="winnerbox">
-      <p>Who won this match? Winner keeps the champion position.</p>
-
+      <p>Select the winner. Winner stays champion; loser is eliminated.</p>
       <div class="winnerbuttons">
         <button id="win1" disabled>PLAYER 1 WON</button>
         <button id="win2" disabled>PLAYER 2 WON</button>
       </div>
     </div>
 
-    <button id="reset" class="danger">
-      RESET TOURNAMENT
-    </button>
-
-    <p id="notice" class="notice">
-      Only the admin PIN holder can control the tournament.
-    </p>
-
+    <button id="reset" class="danger">RESET TOURNAMENT</button>
+    <p id="notice" class="notice">Only admin can control the tournament.</p>
   </div>
-
 </section>
-
 </main>
 
-<footer>
-  Spin & Win Arena · Spectators can watch without creating an account
-</footer>
+<footer>Golgappy Club Knock Out Tournament · Live public results</footer>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/app.js"></script>
