@@ -1,44 +1,469 @@
-/* Vertical 3D Card Flip Animation */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
-.player {
-    perspective: 900px;
-    overflow: hidden;
+:root {
+  --gold: #f4c45e;
+  --gold-light: #ffe4a0;
+  --background: #090d18;
+  --panel: #131b2c;
+  --panel-light: #1b2740;
+  --text: #f4f5fa;
+  --muted: #9aa8bf;
+  --red: #f15b65;
+  --green: #5bd49a;
 }
 
-.player strong {
-    display: block;
-    transform-style: preserve-3d;
+* {
+  box-sizing: border-box;
 }
 
-.player.rolling {
-    border-color: var(--gold);
-    box-shadow: 0 0 25px #f4c45e55;
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at top, #26304a 0%, transparent 45%),
+    var(--background);
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
 }
 
-.player.rolling strong {
-    animation: verticalCardRoll 0.22s ease-in-out infinite;
-    color: var(--gold);
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: 0;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+.hero {
+  text-align: center;
+  padding: 55px 18px 35px;
+  background: linear-gradient(135deg, #10192b, #202c43);
+  border-bottom: 1px solid #ffffff12;
+}
+
+.club-tag,
+.small-label {
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 3px;
+  font-weight: 700;
+}
+
+.hero h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(27px, 5vw, 48px);
+  margin: 15px 0 8px;
+  color: var(--gold-light);
+  text-transform: uppercase;
+}
+
+.hero p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.container {
+  width: min(1050px, 92%);
+  margin: 30px auto;
+}
+
+.status-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.status-panel > div,
+.match-card,
+.admin-section,
+.list-card,
+.history-section,
+.champion-section {
+  background: linear-gradient(145deg, var(--panel), #101827);
+  border: 1px solid #ffffff12;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.status-panel h2 {
+  margin: 8px 0 0;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 21px;
+}
+
+.section-heading {
+  text-align: center;
+  margin: 35px 0 18px;
+}
+
+.section-heading h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 21px;
+  margin: 8px 0;
+}
+
+.match-card {
+  display: grid;
+  grid-template-columns: 1fr 65px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 25px;
+  border-color: #f4c45e40;
+}
+
+.player-box {
+  min-width: 0;
+  min-height: 140px;
+  padding: 18px 10px;
+  border-radius: 12px;
+  border: 1px solid #ffffff20;
+  background: var(--panel-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  perspective: 1000px;
+  overflow: hidden;
+}
+
+.player-label {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+
+.player-box strong {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(15px, 2.5vw, 23px);
+  color: var(--gold-light);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.versus {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--red);
+  font-weight: 800;
+  text-align: center;
+}
+
+.match-message {
+  text-align: center;
+  color: var(--muted);
+  margin: 18px 0;
+}
+
+.winner-controls {
+  text-align: center;
+  padding: 15px;
+  border-radius: 12px;
+  background: #1b2740;
+}
+
+.winner-controls p {
+  color: var(--gold);
+  font-size: 13px;
+}
+
+.winner-button {
+  display: inline-block;
+  margin: 5px;
+  padding: 12px 18px;
+  color: #101827;
+  background: var(--gold);
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.champion-section {
+  text-align: center;
+  margin-top: 25px;
+  border-color: var(--gold);
+  background: linear-gradient(135deg, #302719, #151b29);
+}
+
+.trophy {
+  font-size: 55px;
+}
+
+.champion-section h2 {
+  color: var(--gold-light);
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(25px, 5vw, 40px);
+  overflow-wrap: anywhere;
+}
+
+.admin-section {
+  margin-top: 40px;
+}
+
+#admin-login {
+  display: flex;
+  gap: 10px;
+}
+
+input,
+textarea {
+  width: 100%;
+  background: #0c1423;
+  color: white;
+  border: 1px solid #ffffff25;
+  border-radius: 9px;
+  padding: 13px;
+  outline: none;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--gold);
+}
+
+#admin-login button,
+.admin-buttons button {
+  border-radius: 8px;
+  padding: 12px 18px;
+  background: var(--gold);
+  color: #101827;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#admin-controls label {
+  display: block;
+  color: var(--muted);
+  margin: 15px 0 8px;
+  font-size: 13px;
+}
+
+.admin-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.admin-buttons .spin-button {
+  background: var(--green);
+  min-width: 110px;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.admin-buttons .reset-button {
+  background: var(--red);
+  color: white;
+}
+
+.admin-buttons .logout-button {
+  background: #52617a;
+  color: white;
+}
+
+.admin-message {
+  min-height: 20px;
+  font-size: 13px;
+}
+
+.lists-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 25px;
+}
+
+.list-card h3 {
+  color: var(--gold);
+  font-size: 15px;
+  margin-top: 0;
+}
+
+.list-card ul {
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+
+.history-section {
+  margin-top: 30px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #ffffff12;
+}
+
+.history-item:last-child {
+  border-bottom: 0;
+}
+
+.history-item strong {
+  overflow-wrap: anywhere;
+}
+
+.round-label {
+  display: block;
+  color: var(--gold);
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+
+.versus-small {
+  color: var(--red);
+  font-size: 11px;
+  margin: 0 5px;
+}
+
+.history-result {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.winner-text {
+  color: var(--green);
+}
+
+.loser-text {
+  color: var(--red);
+}
+
+footer {
+  text-align: center;
+  padding: 25px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 25px;
+  transform: translate(-50%, 20px);
+  background: var(--gold);
+  color: #111827;
+  padding: 12px 20px;
+  border-radius: 9px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.25s;
+  z-index: 99;
+  max-width: 90%;
+  text-align: center;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* Vertical card flip animation */
+.player-box.rolling {
+  border-color: var(--gold);
+  box-shadow: 0 0 25px #f4c45e55;
+}
+
+.player-box.rolling strong {
+  color: var(--gold);
+  animation: verticalCardRoll 0.22s ease-in-out infinite;
 }
 
 @keyframes verticalCardRoll {
-    0% {
-        transform: rotateX(75deg) translateY(-35px);
-        opacity: 0;
-    }
+  0% {
+    transform: rotateX(-90deg) translateY(-25px);
+    opacity: 0;
+  }
 
-    50% {
-        transform: rotateX(0deg) translateY(0);
-        opacity: 1;
-    }
+  50% {
+    transform: rotateX(0deg) translateY(0);
+    opacity: 1;
+  }
 
-    100% {
-        transform: rotateX(-75deg) translateY(35px);
-        opacity: 0;
-    }
+  100% {
+    transform: rotateX(90deg) translateY(25px);
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .player.rolling strong {
-        animation: none;
-    }
+  .player-box.rolling strong {
+    animation: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .status-panel {
+    gap: 7px;
+  }
+
+  .status-panel > div {
+    padding: 12px 8px;
+  }
+
+  .status-panel h2 {
+    font-size: 15px;
+  }
+
+  .small-label {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+
+  .match-card {
+    grid-template-columns: 1fr 35px 1fr;
+    gap: 6px;
+    padding: 12px;
+  }
+
+  .player-box {
+    min-height: 115px;
+    padding: 12px 5px;
+  }
+
+  .lists-section {
+    grid-template-columns: 1fr;
+  }
+
+  #admin-login {
+    flex-direction: column;
+  }
+
+  .history-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .history-result {
+    text-align: left;
+  }
+
+  .winner-button {
+    width: 100%;
+    margin: 5px 0;
+  }
 }
