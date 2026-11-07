@@ -1,98 +1,145 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Golgappy Club Knock Out Tournament</title>
-<link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Golgappy Club Knock Out Tournament</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <div class="brand">🏆 GOLGAPPY CLUB <span>KNOCK OUT TOURNAMENT</span></div>
-  <div class="live"><i></i> LIVE TOURNAMENT</div>
-</header>
+  <header class="hero">
+    <div class="club-tag">GOLGAPPY CLUB PRESENTS</div>
+    <h1>Knock Out Tournament</h1>
+    <p>One Champion. One Ultimate Victory.</p>
+  </header>
 
-<main>
-<section class="hero">
-  <p class="eyebrow">GOLGAPPY CLUB · OFFICIAL TOURNAMENT</p>
-  <h1>Knock Out<br><em>Tournament</em></h1>
-  <p class="sub">One champion stays. One new challenger enters. The loser is eliminated.</p>
-  <div class="roomline">Share this page with everyone · Viewers can watch live</div>
-</section>
+  <main class="container">
 
-<section class="arena">
-  <div class="topline">
-    <span id="round">ROUND —</span>
-    <span id="status">WAITING FOR PLAYERS</span>
-  </div>
-
-  <div class="duel">
-    <div class="player" id="p1">
-      <small>PLAYER 1</small>
-      <strong>—</strong>
-    </div>
-    <div class="vs">VS</div>
-    <div class="player" id="p2">
-      <small>PLAYER 2</small>
-      <strong>—</strong>
-    </div>
-  </div>
-
-  <div id="champion" class="champion hidden">
-    👑 CHAMPION <strong></strong>
-  </div>
-
-  <div class="history">
-    <h2>Match results</h2>
-    <div id="history" class="empty">Matches will appear here as they happen.</div>
-  </div>
-</section>
-
-<section class="side">
-  <div class="card">
-    <h2>Challengers waiting <b id="count">0</b></h2>
-    <div id="players" class="chips">Waiting for players…</div>
-  </div>
-
-  <div class="card">
-    <h2>Eliminated players</h2>
-    <div id="eliminated" class="chips">No eliminations yet</div>
-  </div>
-
-  <div class="card admin">
-    <h2>Admin controls <span class="lock">🔒</span></h2>
-
-    <label>Admin PIN
-      <input id="pin" type="password" placeholder="Enter admin PIN">
-    </label>
-
-    <label>Add player names
-      <textarea id="names" rows="5" placeholder="One name per line"></textarea>
-    </label>
-
-    <button id="add">SET PLAYERS</button>
-    <button id="spin" class="primary">🎡 SPIN FOR MATCH</button>
-
-    <div class="winnerbox">
-      <p>Select the winner. Winner stays champion; loser is eliminated.</p>
-      <div class="winnerbuttons">
-        <button id="win1" disabled>PLAYER 1 WON</button>
-        <button id="win2" disabled>PLAYER 2 WON</button>
+    <section class="status-panel">
+      <div>
+        <span class="small-label">TOURNAMENT STATUS</span>
+        <h2 id="status">Waiting</h2>
       </div>
-    </div>
+      <div>
+        <span class="small-label">ROUND</span>
+        <h2 id="round">1</h2>
+      </div>
+      <div>
+        <span class="small-label">PLAYERS LEFT</span>
+        <h2 id="remaining">0</h2>
+      </div>
+    </section>
 
-    <button id="reset" class="danger">RESET TOURNAMENT</button>
-    <p id="notice" class="notice">Only admin can control the tournament.</p>
-  </div>
-</section>
-</main>
+    <section class="match-section">
+      <div class="section-heading">
+        <span class="small-label">LIVE MATCH</span>
+        <h2>THE BATTLE ARENA</h2>
+      </div>
 
-<footer>Golgappy Club Knock Out Tournament · Live public results</footer>
+      <div class="match-card">
+        <div class="player-box" id="p1">
+          <span class="player-label">PLAYER 1</span>
+          <strong id="name1">Waiting...</strong>
+        </div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="/app.js"></script>
+        <div class="versus">VS</div>
 
+        <div class="player-box" id="p2">
+          <span class="player-label">PLAYER 2</span>
+          <strong id="name2">Waiting...</strong>
+        </div>
+      </div>
+
+      <div id="match-message" class="match-message">
+        Waiting for the first spin.
+      </div>
+
+      <div id="winner-controls" class="winner-controls hidden">
+        <p>Admin: Select the actual match winner</p>
+        <button id="win1" class="winner-button"></button>
+        <button id="win2" class="winner-button"></button>
+      </div>
+    </section>
+
+    <section class="champion-section hidden" id="champion-section">
+      <div class="trophy">🏆</div>
+      <span class="small-label">TOURNAMENT CHAMPION</span>
+      <h2 id="champion-name">Champion</h2>
+      <p>Undefeated. Unstoppable. The ultimate winner!</p>
+    </section>
+
+    <section class="admin-section">
+      <div class="section-heading">
+        <span class="small-label">CONTROL ROOM</span>
+        <h2>ADMIN PANEL</h2>
+      </div>
+
+      <div id="admin-login">
+        <input
+          type="password"
+          id="admin-pin"
+          placeholder="Enter Admin PIN"
+          autocomplete="current-password"
+        >
+        <button id="login-button">Unlock Admin</button>
+      </div>
+
+      <div id="admin-controls" class="hidden">
+        <label for="player-input">Player names (one name per line)</label>
+        <textarea
+          id="player-input"
+          rows="7"
+          placeholder="Player 1&#10;Player 2&#10;Player 3"
+        ></textarea>
+
+        <div class="admin-buttons">
+          <button id="save-players">Save Players</button>
+          <button id="spin-button" class="spin-button">SPIN</button>
+          <button id="reset-button" class="reset-button">Reset Tournament</button>
+          <button id="logout-button" class="logout-button">Lock Admin</button>
+        </div>
+
+        <p id="admin-message" class="admin-message"></p>
+      </div>
+    </section>
+
+    <section class="lists-section">
+      <div class="list-card">
+        <h3>🏅 Latest Winner</h3>
+        <p id="last-winner">Not decided yet</p>
+      </div>
+
+      <div class="list-card">
+        <h3>Players Remaining</h3>
+        <ul id="remaining-list"></ul>
+      </div>
+
+      <div class="list-card">
+        <h3>Eliminated Players</h3>
+        <ul id="eliminated-list"></ul>
+      </div>
+    </section>
+
+    <section class="history-section">
+      <div class="section-heading">
+        <span class="small-label">TOURNAMENT RECORD</span>
+        <h2>MATCH HISTORY</h2>
+      </div>
+      <div id="history-list" class="history-list">
+        No matches played yet.
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Golgappy Club • Knock Out Tournament</p>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
