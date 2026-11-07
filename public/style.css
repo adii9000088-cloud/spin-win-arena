@@ -43,6 +43,11 @@ button:hover {
   transform: translateY(-1px);
 }
 
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .hero {
   text-align: center;
   padding: 55px 18px 35px;
@@ -76,30 +81,29 @@ button:hover {
   margin: 30px auto;
 }
 
+/* Tournament status */
+
 .status-panel {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-bottom: 30px;
 }
 
-.status-panel > div,
-.match-card,
-.admin-section,
-.list-card,
-.history-section,
-.champion-section {
+.status-card {
   background: linear-gradient(145deg, var(--panel), #101827);
   border: 1px solid #ffffff12;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 20px;
 }
 
-.status-panel h2 {
+.status-card h2 {
   margin: 8px 0 0;
   font-family: 'Orbitron', sans-serif;
-  font-size: 21px;
+  font-size: 20px;
 }
+
+/* Headings */
 
 .section-heading {
   text-align: center;
@@ -112,13 +116,17 @@ button:hover {
   margin: 8px 0;
 }
 
+/* Match arena */
+
 .match-card {
   display: grid;
   grid-template-columns: 1fr 65px 1fr;
   align-items: center;
   gap: 12px;
   padding: 25px;
-  border-color: #f4c45e40;
+  background: linear-gradient(145deg, var(--panel), #101827);
+  border: 1px solid #f4c45e40;
+  border-radius: 16px;
 }
 
 .player-box {
@@ -168,6 +176,8 @@ button:hover {
   margin: 18px 0;
 }
 
+/* Winner selection */
+
 .winner-controls {
   text-align: center;
   padding: 15px;
@@ -190,10 +200,14 @@ button:hover {
   border-radius: 8px;
 }
 
+/* Champion */
+
 .champion-section {
   text-align: center;
   margin-top: 25px;
-  border-color: var(--gold);
+  padding: 25px;
+  border: 1px solid var(--gold);
+  border-radius: 16px;
   background: linear-gradient(135deg, #302719, #151b29);
 }
 
@@ -208,8 +222,14 @@ button:hover {
   overflow-wrap: anywhere;
 }
 
+/* Admin panel */
+
 .admin-section {
   margin-top: 40px;
+  padding: 20px;
+  background: linear-gradient(145deg, var(--panel), #101827);
+  border: 1px solid #ffffff12;
+  border-radius: 16px;
 }
 
 #admin-login {
@@ -278,11 +298,21 @@ textarea:focus {
   font-size: 13px;
 }
 
+/* Player lists */
+
 .lists-section {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
   margin-top: 25px;
+}
+
+.list-card {
+  padding: 20px;
+  background: linear-gradient(145deg, var(--panel), #101827);
+  border: 1px solid #ffffff12;
+  border-radius: 14px;
+  overflow-wrap: anywhere;
 }
 
 .list-card h3 {
@@ -298,8 +328,70 @@ textarea:focus {
   overflow-wrap: anywhere;
 }
 
+/* Round progress */
+
+.round-section {
+  margin-top: 30px;
+}
+
+.round-progress {
+  background: linear-gradient(145deg, var(--panel), #101827);
+  border: 1px solid #ffffff12;
+  border-radius: 14px;
+  padding: 20px;
+  color: var(--muted);
+}
+
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.progress-stats div {
+  background: var(--panel-light);
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.progress-stats span {
+  display: block;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+
+.progress-stats strong {
+  display: block;
+  font-family: 'Orbitron', sans-serif;
+  margin-top: 7px;
+  font-size: 20px;
+  color: white;
+}
+
+.round-progress h3 {
+  color: var(--gold);
+  font-size: 15px;
+}
+
+.round-progress ul {
+  line-height: 2;
+}
+
+.progress-live {
+  color: var(--green);
+}
+
+/* Match history */
+
 .history-section {
   margin-top: 30px;
+  padding: 20px;
+  background: linear-gradient(145deg, var(--panel), #101827);
+  border: 1px solid #ffffff12;
+  border-radius: 16px;
 }
 
 .history-item {
@@ -348,12 +440,22 @@ textarea:focus {
   color: var(--red);
 }
 
+.bye-text {
+  color: var(--gold);
+  font-size: 11px;
+  margin-left: 8px;
+}
+
+/* Footer */
+
 footer {
   text-align: center;
   padding: 25px;
   color: var(--muted);
   font-size: 12px;
 }
+
+/* Utilities */
 
 .hidden {
   display: none !important;
@@ -382,7 +484,8 @@ footer {
   transform: translate(-50%, 0);
 }
 
-/* Vertical card flip animation */
+/* Five-second vertical card flip animation */
+
 .player-box.rolling {
   border-color: var(--gold);
   box-shadow: 0 0 25px #f4c45e55;
@@ -416,17 +519,21 @@ footer {
   }
 }
 
+/* Mobile responsive */
+
 @media (max-width: 650px) {
+
   .status-panel {
-    gap: 7px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
-  .status-panel > div {
-    padding: 12px 8px;
+  .status-card {
+    padding: 13px;
   }
 
-  .status-panel h2 {
-    font-size: 15px;
+  .status-card h2 {
+    font-size: 16px;
   }
 
   .small-label {
@@ -465,5 +572,13 @@ footer {
   .winner-button {
     width: 100%;
     margin: 5px 0;
+  }
+
+  .progress-stats {
+    gap: 6px;
+  }
+
+  .progress-stats div {
+    padding: 10px 5px;
   }
 }
